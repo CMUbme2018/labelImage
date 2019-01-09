@@ -44,6 +44,7 @@ namespace labelImage
             };
 
             rectangleNodes = new List<RemarkRectangleNode>();
+            rectangles = new List<Rectangle>();
 
         }
 
@@ -51,6 +52,7 @@ namespace labelImage
         TranslateTransform translateChanged;
         ScaleTransform scaleChanged;
         private List<RemarkRectangleNode> rectangleNodes;
+        private List<Rectangle> rectangles;
 
         #region 打开图像
         string directory = null;
@@ -65,7 +67,17 @@ namespace labelImage
             ImageSourceFileName = OpenImage("打开参考图像");
             if (ImageSourceFileName != "")
             {
+                ImageCanvas.Children.Remove(baseCanvas);
+                baseCanvas = null;
+
                 ImageSourceImage.Source = new BitmapImage(new Uri(ImageSourceFileName));
+
+                baseCanvas = new Canvas();
+                baseCanvas.Height = ImageCanvas.Height;
+                baseCanvas.Width = ImageCanvas.Width;
+                Canvas.SetTop(baseCanvas, 0);
+                Canvas.SetLeft(baseCanvas, 0);
+                ImageCanvas.Children.Add(baseCanvas);
             }
         }
 
@@ -96,7 +108,25 @@ namespace labelImage
             this.Cursor = System.Windows.Input.Cursors.ScrollAll;
             img.CaptureMouse();
             IsMouseLeftButtonDown = true;
+
             PreviousMousePoint = e.GetPosition(img);
+
+            if (isRemarking)
+            {
+                
+
+                Rectangle rectangle = new Rectangle();
+                rectangle.Stroke = new SolidColorBrush(Colors.Black);
+                rectangle.Width = 0;
+                rectangle.Height = 0;
+                baseCanvas.Children.Add(rectangle);
+                Matrix matrix = ImageSourceImage.RenderTransform.Value;
+                Canvas.SetLeft(rectangle, PreviousMousePoint.X / scaleLevel - tempTranslate.X);
+                Canvas.SetTop(rectangle, PreviousMousePoint.Y / scaleLevel - tempTranslate.Y);
+                rectangles.Add(rectangle);
+            }
+                
+
         }
         private void ImageLeft_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
@@ -105,47 +135,48 @@ namespace labelImage
             {
                 return;
             }
+            Point positoin = e.GetPosition(img);
             this.Cursor = System.Windows.Input.Cursors.Arrow;
             img.ReleaseMouseCapture();
+            if (!isRemarking && IsMouseLeftButtonDown)
+            {
+                //不在标记方框的状态, 则处在移动图片的状态
+                //为了避免跳跃式的变换，单次有效变化 累加入 totalTranslate中。
+                totalTranslate.X += (positoin.X - PreviousMousePoint.X) / scaleLevel;
+                totalTranslate.Y += (positoin.Y - PreviousMousePoint.Y) / scaleLevel;
+            }
             IsMouseLeftButtonDown = false;
 
 
-            if (rectangle != null)
-            {
-                //如果画出了矩形, 则将其存储在序列中, 先将base canvas 的矩形清除, 并显示序列中存储的所有矩形
-                RemarkRectangleNode rectNode = new RemarkRectangleNode();
-                rectNode.xmin = (int)PreviousMousePoint.X;
-                rectNode.ymin = (int)PreviousMousePoint.Y;
-                rectNode.xmax = (int)PreviousMousePoint.X + (int)rectangle.Width;
-                rectNode.ymax = (int)PreviousMousePoint.Y + (int)rectangle.Height;
-                rectangleNodes.Add(rectNode);
+            
+            
 
-                baseCanvas.Children.Remove(rectangle);
-                rectangle = null;
+            //if (rectangle != null)
+            //{
+            //    //如果画出了矩形, 则将其存储在序列中, 先将base canvas 的矩形清除, 并显示序列中存储的所有矩形
+            //    RemarkRectangleNode rectNode = new RemarkRectangleNode();
+            //    rectNode.xmin = (int)PreviousMousePoint.X;
+            //    rectNode.ymin = (int)PreviousMousePoint.Y;
+            //    rectNode.xmax = (int)PreviousMousePoint.X + (int)rectangle.Width;
+            //    rectNode.ymax = (int)PreviousMousePoint.Y + (int)rectangle.Height;
+            //    rectangleNodes.Add(rectNode);
 
-                foreach (RemarkRectangleNode node in rectangleNodes)
-                {
-                    System.Windows.Shapes.Rectangle rect = new System.Windows.Shapes.Rectangle();
-                    rect.MouseEnter += new System.Windows.Input.MouseEventHandler(RemarkRectangle_MouseEnter);
-                    rect.MouseLeave += new System.Windows.Input.MouseEventHandler(RemarkRectangle_MouseLeave);
-                    rect.MouseRightButtonUp += new System.Windows.Input.MouseButtonEventHandler(RemarkRectangle_MouseRightUp);
-                    rect.Stroke = new SolidColorBrush(Colors.Black);
-                    rect.Width = node.xmax - node.xmin;
-                    rect.Height = node.ymax - node.ymin;
-                    rect.RenderTransform = new TransformGroup
-                    {
-                        Children = new TransformCollection()
-                    {
-                        new TranslateTransform(0,0),
-                        new ScaleTransform(1,1),
-                    }
-                    };
-                    baseCanvas.Children.Add(rect);
-                    Canvas.SetLeft(rect, node.xmin);
-                    Canvas.SetTop(rect, node.ymin);
-                }
 
-            }
+            //    rectangles.Add(rectangle);
+
+
+
+
+            //    foreach (Rectangle rect in rectangles)
+            //    {
+
+            //        rect.MouseEnter += new System.Windows.Input.MouseEventHandler(RemarkRectangle_MouseEnter);
+            //        rect.MouseLeave += new System.Windows.Input.MouseEventHandler(RemarkRectangle_MouseLeave);
+            //        rect.MouseRightButtonUp += new System.Windows.Input.MouseButtonEventHandler(RemarkRectangle_MouseRightUp);
+
+            //    }
+
+            //}
 
         }
         private void ImageLeft_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
@@ -160,7 +191,12 @@ namespace labelImage
                 if (isRemarking)
                 {
                     //画标注的矩形
-                    DrawRemarkRectangle(img, e);
+                    Rectangle rectangle = rectangles.Last();
+                    var point = e.GetPosition(img);
+                    var rect = new Rect(PreviousMousePoint, point);
+                    rectangle.Width = rect.Width / scaleLevel;
+                    rectangle.Height = rect.Height / scaleLevel;
+
                 }
                 else
                 {
@@ -176,10 +212,30 @@ namespace labelImage
             {
                 return;
             }
-            TransformGroup group = ImageGird.FindResource("ImageTransformResource") as TransformGroup;
-            System.Windows.Point point = e.GetPosition(image);
-            double scale = e.Delta * 0.01;
-            ZoomImage(group, point, scale);
+            //TransformGroup group = ImageGird.FindResource("ImageTransformResource") as TransformGroup;
+            //System.Windows.Point point = e.GetPosition(image);
+            //double scale = e.Delta * 0.01;
+            //ZoomImage(group, point, scale);
+
+            Point scaleCenter = e.GetPosition(image);
+
+            if (e.Delta > 0)
+            {
+                scaleLevel *= 1.08;
+            }
+            else
+            {
+                scaleLevel /= 1.08;
+                if (scaleLevel <= 1)
+                    scaleLevel = 1;
+            }
+
+            totalScale.ScaleX = scaleLevel;
+            totalScale.ScaleY = scaleLevel;
+            //totalScale.CenterX = scaleCenter.X;
+            //totalScale.CenterY = scaleCenter.Y;
+            Console.WriteLine("scaleCenterX----{0}", scaleCenter.X);
+            adjustGraph();
         }
 
         private void RemarkRectangle_MouseEnter(object sender, System.EventArgs e)
@@ -235,41 +291,57 @@ namespace labelImage
             {
                 return;
             }
-            TransformGroup group = ImageGird.FindResource("ImageTransformResource") as TransformGroup;
-            TranslateTransform transform = group.Children[1] as TranslateTransform;
-            System.Windows.Point position = e.GetPosition(image);
-            transform.X += position.X - PreviousMousePoint.X;
-            transform.Y += position.Y - PreviousMousePoint.Y;
-            PreviousMousePoint = position;
+            //TransformGroup group = ImageGird.FindResource("ImageTransformResource") as TransformGroup;
+            //TranslateTransform transform = group.Children[1] as TranslateTransform;
+            //System.Windows.Point position = e.GetPosition(image);
+            //transform.X += position.X - PreviousMousePoint.X;
+            //transform.Y += position.Y - PreviousMousePoint.Y;
+            //PreviousMousePoint = position;
 
-            translateChanged.X = transform.X;
-            translateChanged.Y = transform.Y;
-            Console.WriteLine("x-----{0}", translateChanged.X);
-            Console.WriteLine("y-----{0}", translateChanged.Y);
+            //translateChanged.X = transform.X;
+            //translateChanged.Y = transform.Y;
+            //Console.WriteLine("x-----{0}", translateChanged.X);
+            //Console.WriteLine("y-----{0}", translateChanged.Y);
+
+
+
+            Point currentMousePosition = e.GetPosition(image);//当前鼠标位置
+
+            Point deltaPt = new Point(0, 0);
+            deltaPt.X = (currentMousePosition.X - PreviousMousePoint.X) / scaleLevel;
+            deltaPt.Y = (currentMousePosition.Y - PreviousMousePoint.Y) / scaleLevel;
+    
+            tempTranslate.X = totalTranslate.X + deltaPt.X;
+            tempTranslate.Y = totalTranslate.Y + deltaPt.Y;
+        
+            adjustGraph();
+
 
         }
 
-
-        Rectangle rectangle = null;
-        private void DrawRemarkRectangle(ContentControl img, System.Windows.Input.MouseEventArgs e)
+        TranslateTransform totalTranslate = new TranslateTransform();
+        TranslateTransform tempTranslate = new TranslateTransform();
+        ScaleTransform totalScale = new ScaleTransform();
+        Double scaleLevel = 1;
+        private void adjustGraph()
         {
-            var point = e.GetPosition(img);
-            baseCanvas.Children.Remove(rectangle);
-            rectangle = null;
-            var rect = new Rect(PreviousMousePoint, point);
-            rectangle = new System.Windows.Shapes.Rectangle();
-            rectangle.Stroke = new SolidColorBrush(Colors.Black); ;
-            rectangle.Width = rect.Width;
-            rectangle.Height = rect.Height;
-            baseCanvas.Children.Add(rectangle);
-            Canvas.SetLeft(rectangle, PreviousMousePoint.X);
-            Canvas.SetTop(rectangle, PreviousMousePoint.Y);
+            TransformGroup tfGroup = new TransformGroup();
+            tfGroup.Children.Add(tempTranslate);
+            tfGroup.Children.Add(totalScale);
+    
+            foreach (UIElement ue in ImageCanvas.Children)
+            {
+                ue.RenderTransform = tfGroup;
+            }
         }
-        #endregion
 
-        #region Ribbon按钮操作
-        //标记图像按钮的显示, 通过布尔值判断当前是标记图像还是移动图像
-        public bool isRemarking = false;
+
+
+#endregion
+
+#region Ribbon按钮操作
+//标记图像按钮的显示, 通过布尔值判断当前是标记图像还是移动图像
+public bool isRemarking = false;
         private bool isPutBaseCanvas = false;
         private void RBRemarksImage_Click(object sender, RoutedEventArgs e)
         {
@@ -279,13 +351,13 @@ namespace labelImage
                 this.RBRemarksImage.Label = "取消标记";
                 if (!isPutBaseCanvas)
                 {
-                    baseCanvas = new Canvas();
-                    //baseCanvas.Background = new SolidColorBrush(Colors.AliceBlue);
-                    baseCanvas.Height = ImageCanvas.Height;
-                    baseCanvas.Width = ImageCanvas.Width;
-                    Canvas.SetTop(baseCanvas, 0);
-                    Canvas.SetLeft(baseCanvas, 0);
-                    ImageCanvas.Children.Add(baseCanvas);
+                    //baseCanvas = new Canvas();
+                    ////baseCanvas.Background = new SolidColorBrush(Colors.AliceBlue);
+                    //baseCanvas.Height = ImageCanvas.Height;
+                    //baseCanvas.Width = ImageCanvas.Width;
+                    //Canvas.SetTop(baseCanvas, 0);
+                    //Canvas.SetLeft(baseCanvas, 0);
+                    //ImageCanvas.Children.Add(baseCanvas);
                     isPutBaseCanvas = true;
 
                     
