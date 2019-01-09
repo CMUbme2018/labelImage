@@ -75,6 +75,14 @@ namespace labelImage
                 baseCanvas = new Canvas();
                 baseCanvas.Height = ImageSourceImage.Source.Height;
                 baseCanvas.Width = ImageSourceImage.Source.Width;
+                baseCanvas.RenderTransform = new TransformGroup
+                {
+                    Children = new TransformCollection()
+                    {
+                        new ScaleTransform(1,1),
+                        new TranslateTransform(0,0),
+                    }
+                };
                 Canvas.SetTop(baseCanvas, 0);
                 Canvas.SetLeft(baseCanvas, 0);
                 ImageCanvas.Children.Add(baseCanvas);
@@ -119,18 +127,18 @@ namespace labelImage
                 rectangle.Stroke = new SolidColorBrush(Colors.Black);
                 rectangle.Width = 0;
                 rectangle.Height = 0;
-                rectangle.RenderTransform = new TransformGroup
-                {
-                    Children = new TransformCollection()
-                    {
-                        new ScaleTransform(1,1),
-                        new TranslateTransform(0,0),
-                    }
-                };
+                //rectangle.RenderTransform = new TransformGroup
+                //{
+                //    Children = new TransformCollection()
+                //    {
+                //        new ScaleTransform(1,1),
+                //        new TranslateTransform(0,0),
+                //    }
+                //};
                 baseCanvas.Children.Add(rectangle);
                 Matrix matrix = ImageSourceImage.RenderTransform.Value;
-                Canvas.SetLeft(rectangle, PreviousMousePoint.X);
-                Canvas.SetTop(rectangle, PreviousMousePoint.Y);
+                Canvas.SetLeft(rectangle, (PreviousMousePoint.X  - translateChanged.X)/scaleChanged.ScaleX);
+                Canvas.SetTop(rectangle, (PreviousMousePoint.Y  - translateChanged.Y)/scaleChanged.ScaleY);
                 rectangles.Add(rectangle);
             }
                 
@@ -195,8 +203,8 @@ namespace labelImage
                     Rectangle rectangle = rectangles.Last();
                     var point = e.GetPosition(img);
                     var rect = new Rect(PreviousMousePoint, point);
-                    rectangle.Width = rect.Width;
-                    rectangle.Height = rect.Height;
+                    rectangle.Width = rect.Width / scaleChanged.ScaleX;
+                    rectangle.Height = rect.Height / scaleChanged.ScaleY;
 
                 }
                 else
@@ -264,52 +272,61 @@ namespace labelImage
             translateChanged.Y = transform1.Y;
 
 
-            foreach (UIElement ue in baseCanvas.Children)
-            {
-                TransformGroup ns = (TransformGroup)ue.RenderTransform;
-                if (ns != null)
-                {
-                    Point controlPoint = ns.Inverse.Transform(point);
-                    ScaleTransform scaleTrans = ns.Children[0] as ScaleTransform;
-                    scaleTrans.ScaleX = transform.ScaleX;
-                    scaleTrans.ScaleY = transform.ScaleY;
-                    TranslateTransform translateTrans = ns.Children[1] as TranslateTransform;
-                    translateTrans.X = -1 * ((controlPoint.X * scaleTrans.ScaleX) - point.X);
-                    translateTrans.Y = -1 * ((controlPoint.Y * scaleTrans.ScaleY) - point.Y);
+            TransformGroup transGroup = (TransformGroup)baseCanvas.RenderTransform;
+            ScaleTransform scaleTrans = transGroup.Children[0] as ScaleTransform;
+            scaleTrans.ScaleX = transform.ScaleX;
+            scaleTrans.ScaleY = transform.ScaleY;
+            TranslateTransform translateTrans = transGroup.Children[1] as TranslateTransform;
+            translateTrans.X = transform1.X;
+            translateTrans.Y = transform1.Y;
+
+
+            //foreach (UIElement ue in baseCanvas.Children)
+            //{
+            //    TransformGroup ns = (TransformGroup)ue.RenderTransform;
+            //    if (ns != null)
+            //    {
+            //        Point controlPoint = ns.Inverse.Transform(point);
+            //        ScaleTransform scaleTrans = ns.Children[0] as ScaleTransform;
+            //        scaleTrans.ScaleX = transform.ScaleX;
+            //        scaleTrans.ScaleY = transform.ScaleY;
+            //        TranslateTransform translateTrans = ns.Children[1] as TranslateTransform;
+            //        translateTrans.X = -1 * ((controlPoint.X * scaleTrans.ScaleX) - point.X);
+            //        translateTrans.Y = -1 * ((controlPoint.Y * scaleTrans.ScaleY) - point.Y);
 
 
                     
                     
                     
-                    //translateTrans.X = transform1.X ;
-                    //translateTrans.Y = transform1.Y ;
-                    Console.WriteLine("transform1---x---{0}", transform1.X);
-                    Console.WriteLine("transform1---y---{0}", transform1.Y);
+            //        //translateTrans.X = transform1.X ;
+            //        //translateTrans.Y = transform1.Y ;
+            //        Console.WriteLine("transform1---x---{0}", transform1.X);
+            //        Console.WriteLine("transform1---y---{0}", transform1.Y);
 
 
 
 
-                    //foreach (Transform trans in ns.Children)
-                    //{
-                    //    if (trans is ScaleTransform && scaleChanging != null)
-                    //    {
-                    //        ScaleTransform scale = (ScaleTransform)trans;
-                    //        scale.ScaleX += scaleChanged.ScaleX;
-                    //        scale.ScaleY += scaleChanged.ScaleY;
+            //        //foreach (Transform trans in ns.Children)
+            //        //{
+            //        //    if (trans is ScaleTransform && scaleChanging != null)
+            //        //    {
+            //        //        ScaleTransform scale = (ScaleTransform)trans;
+            //        //        scale.ScaleX += scaleChanged.ScaleX;
+            //        //        scale.ScaleY += scaleChanged.ScaleY;
 
 
-                    //        TranslateTransform scaleTrans = ns.Children[0] as TranslateTransform;
+            //        //        TranslateTransform scaleTrans = ns.Children[0] as TranslateTransform;
 
-                    //        scaleTrans.X = scaleTrans.X + scaleTransformChanging.X - preScaleTransformChanging.X;
-                    //        scaleTrans.Y = scaleTrans.Y + scaleTransformChanging.Y - preScaleTransformChanging.Y;
+            //        //        scaleTrans.X = scaleTrans.X + scaleTransformChanging.X - preScaleTransformChanging.X;
+            //        //        scaleTrans.Y = scaleTrans.Y + scaleTransformChanging.Y - preScaleTransformChanging.Y;
 
-                    //        preScaleTransformChanging = scaleTransformChanging;
+            //        //        preScaleTransformChanging = scaleTransformChanging;
 
-                    //    }
-                    //}
+            //        //    }
+            //        //}
 
-                }
-            }
+            //    }
+            //}
 
         }
         private void DoImageMove(object sender, System.Windows.Input.MouseEventArgs e)
@@ -329,19 +346,13 @@ namespace labelImage
             translateChanged.X = transform.X;
             translateChanged.Y = transform.Y;
 
-            foreach(UIElement element in baseCanvas.Children)
-            {
-                TransformGroup ns = (TransformGroup)element.RenderTransform;
-                if (ns != null)
-                {
-                    ScaleTransform scaleTrans = ns.Children[0] as ScaleTransform;
-                    TranslateTransform translateTrans = ns.Children[1] as TranslateTransform;
-                    translateTrans.X = transform.X ;
-                    translateTrans.Y = transform.Y ;
-                    
 
-                }
-            }
+            TransformGroup transGroup = (TransformGroup)baseCanvas.RenderTransform;
+            ScaleTransform scaleTrans = transGroup.Children[0] as ScaleTransform;
+            TranslateTransform translateTrans = transGroup.Children[1] as TranslateTransform;
+            translateTrans.X = transform.X;
+            translateTrans.Y = transform.Y;
+            
 
            
 
