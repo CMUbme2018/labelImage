@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:labelImage"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="1000" Width="800">
     <Grid ShowGridLines="True">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"></RowDefinition>
@@ -41,7 +41,7 @@
 
                 <!--标记图像-->
                 <RibbonGroup x:Name="StartGroup" Header="标记图像">
-                    <RibbonButton Name="btnpre"  Content="Pre" LargeImageSource="Icon\Grid.png"   Label="标记图像"  KeyTip="P" Click="RBRemarksImage_Click"/>
+                    <RibbonButton Name="RBRemarksImage"  Content="Pre" LargeImageSource="Icon\Grid.png"   Label="标记图像"  KeyTip="P" Click="RBRemarksImage_Click"/>
                     <RibbonButton Name="btnnext"  Content="Nex" LargeImageSource="Icon\ActionsRegMetro.png"  KeyTip="N"  Label="导出XML" Click="RBExportXML_Click">
                     </RibbonButton>
                 </RibbonGroup>
@@ -77,7 +77,9 @@
                     		MouseLeftButtonUp="ImageLeft_MouseLeftButtonUp"
                     		MouseMove=" ImageLeft_MouseMove"
                     		MouseWheel="ImageLeft_MouseWheel"  HorizontalAlignment="Left">
-                        <Image RenderOptions.BitmapScalingMode="NearestNeighbor" x:Name="ImageSourceImage" Stretch="None" RenderTransform="{StaticResource ImageTransformResource}"  HorizontalAlignment="Left" VerticalAlignment="Top"  ScrollViewer.CanContentScroll="True" />
+                        <Canvas Name="ImageCanvas" Background="Red">
+                            <Image RenderOptions.BitmapScalingMode="NearestNeighbor" x:Name="ImageSourceImage" Stretch="None" RenderTransform="{StaticResource ImageTransformResource}"  HorizontalAlignment="Left" VerticalAlignment="Top"  ScrollViewer.CanContentScroll="True"/>
+                        </Canvas>
                     </ContentControl>
                 </ScrollViewer>
             </Grid>
