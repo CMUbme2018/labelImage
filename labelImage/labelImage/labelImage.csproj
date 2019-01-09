@@ -36,6 +36,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Windows.Controls.Ribbon" />
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -92,6 +94,21 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Icon\ActionsRegMetro.png" />
+    <Resource Include="Icon\ActionsRotate.png" />
+    <Resource Include="Icon\ExitMetro32.png" />
+    <Resource Include="Icon\Grid.png" />
+    <Resource Include="Icon\HelpSystem.png" />
+    <Resource Include="Icon\Microscope.png" />
+    <Resource Include="Icon\Options48.png" />
+    <Resource Include="Icon\PicturesFMetro.png" />
+    <Resource Include="Icon\PicturesRMetro.png" />
+    <Resource Include="Icon\PreProcess.png" />
+    <Resource Include="Icon\Redo.png" />
+    <Resource Include="Icon\SaveMetro.png" />
+    <Resource Include="Icon\Undo.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
