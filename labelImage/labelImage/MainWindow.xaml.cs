@@ -73,8 +73,8 @@ namespace labelImage
                 ImageSourceImage.Source = new BitmapImage(new Uri(ImageSourceFileName));
 
                 baseCanvas = new Canvas();
-                baseCanvas.Height = ImageCanvas.Height;
-                baseCanvas.Width = ImageCanvas.Width;
+                baseCanvas.Height = ImageSourceImage.Source.Height;
+                baseCanvas.Width = ImageSourceImage.Source.Width;
                 Canvas.SetTop(baseCanvas, 0);
                 Canvas.SetLeft(baseCanvas, 0);
                 ImageCanvas.Children.Add(baseCanvas);
@@ -119,10 +119,18 @@ namespace labelImage
                 rectangle.Stroke = new SolidColorBrush(Colors.Black);
                 rectangle.Width = 0;
                 rectangle.Height = 0;
+                rectangle.RenderTransform = new TransformGroup
+                {
+                    Children = new TransformCollection()
+                    {
+                        new ScaleTransform(1,1),
+                        new TranslateTransform(0,0),
+                    }
+                };
                 baseCanvas.Children.Add(rectangle);
                 Matrix matrix = ImageSourceImage.RenderTransform.Value;
-                Canvas.SetLeft(rectangle, PreviousMousePoint.X / scaleLevel - tempTranslate.X);
-                Canvas.SetTop(rectangle, PreviousMousePoint.Y / scaleLevel - tempTranslate.Y);
+                Canvas.SetLeft(rectangle, PreviousMousePoint.X);
+                Canvas.SetTop(rectangle, PreviousMousePoint.Y);
                 rectangles.Add(rectangle);
             }
                 
@@ -138,13 +146,6 @@ namespace labelImage
             Point positoin = e.GetPosition(img);
             this.Cursor = System.Windows.Input.Cursors.Arrow;
             img.ReleaseMouseCapture();
-            if (!isRemarking && IsMouseLeftButtonDown)
-            {
-                //不在标记方框的状态, 则处在移动图片的状态
-                //为了避免跳跃式的变换，单次有效变化 累加入 totalTranslate中。
-                totalTranslate.X += (positoin.X - PreviousMousePoint.X) / scaleLevel;
-                totalTranslate.Y += (positoin.Y - PreviousMousePoint.Y) / scaleLevel;
-            }
             IsMouseLeftButtonDown = false;
 
 
@@ -194,8 +195,8 @@ namespace labelImage
                     Rectangle rectangle = rectangles.Last();
                     var point = e.GetPosition(img);
                     var rect = new Rect(PreviousMousePoint, point);
-                    rectangle.Width = rect.Width / scaleLevel;
-                    rectangle.Height = rect.Height / scaleLevel;
+                    rectangle.Width = rect.Width;
+                    rectangle.Height = rect.Height;
 
                 }
                 else
@@ -212,30 +213,12 @@ namespace labelImage
             {
                 return;
             }
-            //TransformGroup group = ImageGird.FindResource("ImageTransformResource") as TransformGroup;
-            //System.Windows.Point point = e.GetPosition(image);
-            //double scale = e.Delta * 0.01;
-            //ZoomImage(group, point, scale);
+            TransformGroup group = ImageGird.FindResource("ImageTransformResource") as TransformGroup;
+            System.Windows.Point point = e.GetPosition(image);
+            double scale = e.Delta * 0.001;
+            ZoomImage(group, point, scale);
 
-            Point scaleCenter = e.GetPosition(image);
 
-            if (e.Delta > 0)
-            {
-                scaleLevel *= 1.08;
-            }
-            else
-            {
-                scaleLevel /= 1.08;
-                if (scaleLevel <= 1)
-                    scaleLevel = 1;
-            }
-
-            totalScale.ScaleX = scaleLevel;
-            totalScale.ScaleY = scaleLevel;
-            //totalScale.CenterX = scaleCenter.X;
-            //totalScale.CenterY = scaleCenter.Y;
-            Console.WriteLine("scaleCenterX----{0}", scaleCenter.X);
-            adjustGraph();
         }
 
         private void RemarkRectangle_MouseEnter(object sender, System.EventArgs e)
@@ -279,10 +262,55 @@ namespace labelImage
             scaleChanged = transform;
             translateChanged.X = transform1.X;
             translateChanged.Y = transform1.Y;
-            Console.WriteLine("x--scale-----{0}", scaleChanged.ScaleX);
-            Console.WriteLine("y--scale-----{0}", scaleChanged.ScaleY);
-            Console.WriteLine("x--scaleTranslate-----{0}", translateChanged.X);
-            Console.WriteLine("y--scaleTranslate-----{0}", translateChanged.Y);
+
+
+            foreach (UIElement ue in baseCanvas.Children)
+            {
+                TransformGroup ns = (TransformGroup)ue.RenderTransform;
+                if (ns != null)
+                {
+                    Point controlPoint = ns.Inverse.Transform(point);
+                    ScaleTransform scaleTrans = ns.Children[0] as ScaleTransform;
+                    scaleTrans.ScaleX = transform.ScaleX;
+                    scaleTrans.ScaleY = transform.ScaleY;
+                    TranslateTransform translateTrans = ns.Children[1] as TranslateTransform;
+                    translateTrans.X = -1 * ((controlPoint.X * scaleTrans.ScaleX) - point.X);
+                    translateTrans.Y = -1 * ((controlPoint.Y * scaleTrans.ScaleY) - point.Y);
+
+
+                    
+                    
+                    
+                    //translateTrans.X = transform1.X ;
+                    //translateTrans.Y = transform1.Y ;
+                    Console.WriteLine("transform1---x---{0}", transform1.X);
+                    Console.WriteLine("transform1---y---{0}", transform1.Y);
+
+
+
+
+                    //foreach (Transform trans in ns.Children)
+                    //{
+                    //    if (trans is ScaleTransform && scaleChanging != null)
+                    //    {
+                    //        ScaleTransform scale = (ScaleTransform)trans;
+                    //        scale.ScaleX += scaleChanged.ScaleX;
+                    //        scale.ScaleY += scaleChanged.ScaleY;
+
+
+                    //        TranslateTransform scaleTrans = ns.Children[0] as TranslateTransform;
+
+                    //        scaleTrans.X = scaleTrans.X + scaleTransformChanging.X - preScaleTransformChanging.X;
+                    //        scaleTrans.Y = scaleTrans.Y + scaleTransformChanging.Y - preScaleTransformChanging.Y;
+
+                    //        preScaleTransformChanging = scaleTransformChanging;
+
+                    //    }
+                    //}
+
+                }
+            }
+
         }
         private void DoImageMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
@@ -291,49 +319,36 @@ namespace labelImage
             {
                 return;
             }
-            //TransformGroup group = ImageGird.FindResource("ImageTransformResource") as TransformGroup;
-            //TranslateTransform transform = group.Children[1] as TranslateTransform;
-            //System.Windows.Point position = e.GetPosition(image);
-            //transform.X += position.X - PreviousMousePoint.X;
-            //transform.Y += position.Y - PreviousMousePoint.Y;
-            //PreviousMousePoint = position;
+            TransformGroup group = ImageGird.FindResource("ImageTransformResource") as TransformGroup;
+            TranslateTransform transform = group.Children[1] as TranslateTransform;
+            System.Windows.Point position = e.GetPosition(image);
+            transform.X += position.X - PreviousMousePoint.X;
+            transform.Y += position.Y - PreviousMousePoint.Y;
+            PreviousMousePoint = position;
 
-            //translateChanged.X = transform.X;
-            //translateChanged.Y = transform.Y;
-            //Console.WriteLine("x-----{0}", translateChanged.X);
-            //Console.WriteLine("y-----{0}", translateChanged.Y);
+            translateChanged.X = transform.X;
+            translateChanged.Y = transform.Y;
 
-
-
-            Point currentMousePosition = e.GetPosition(image);//当前鼠标位置
-
-            Point deltaPt = new Point(0, 0);
-            deltaPt.X = (currentMousePosition.X - PreviousMousePoint.X) / scaleLevel;
-            deltaPt.Y = (currentMousePosition.Y - PreviousMousePoint.Y) / scaleLevel;
-    
-            tempTranslate.X = totalTranslate.X + deltaPt.X;
-            tempTranslate.Y = totalTranslate.Y + deltaPt.Y;
-        
-            adjustGraph();
-
-
-        }
-
-        TranslateTransform totalTranslate = new TranslateTransform();
-        TranslateTransform tempTranslate = new TranslateTransform();
-        ScaleTransform totalScale = new ScaleTransform();
-        Double scaleLevel = 1;
-        private void adjustGraph()
-        {
-            TransformGroup tfGroup = new TransformGroup();
-            tfGroup.Children.Add(tempTranslate);
-            tfGroup.Children.Add(totalScale);
-    
-            foreach (UIElement ue in ImageCanvas.Children)
+            foreach(UIElement element in baseCanvas.Children)
             {
-                ue.RenderTransform = tfGroup;
+                TransformGroup ns = (TransformGroup)element.RenderTransform;
+                if (ns != null)
+                {
+                    ScaleTransform scaleTrans = ns.Children[0] as ScaleTransform;
+                    TranslateTransform translateTrans = ns.Children[1] as TranslateTransform;
+                    translateTrans.X = transform.X ;
+                    translateTrans.Y = transform.Y ;
+                    
+
+                }
             }
+
+           
+
+
         }
+
+        
 
 
 
