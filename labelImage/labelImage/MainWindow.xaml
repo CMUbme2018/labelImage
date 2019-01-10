@@ -129,4 +129,12 @@
             </Grid>
         </Grid>
     </Grid>
+    
+    <!--标注框的右键菜单-->
+    <Window.Resources>
+        <ContextMenu x:Key="RemarkRectangleRightBtn">
+            <MenuItem Name="DeleteItem" Header="删除" Click="RemarkDeleteBtnClick"/>
+            <Separator></Separator>
+        </ContextMenu>
+    </Window.Resources>
 </Window>

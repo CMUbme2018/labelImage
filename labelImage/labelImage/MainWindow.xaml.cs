@@ -129,12 +129,15 @@ namespace labelImage
                 rectangle.Width = 0;
                 rectangle.Height = 0;
                 baseCanvas.Children.Add(rectangle);
-                Matrix matrix = ImageSourceImage.RenderTransform.Value;
                 Canvas.SetLeft(rectangle, (PreviousMousePoint.X  - translateChanged.X)/scaleChanged.ScaleX);
                 Canvas.SetTop(rectangle, (PreviousMousePoint.Y  - translateChanged.Y)/scaleChanged.ScaleY);
                 rectangles.Add(rectangle);
+
+                rectangle.MouseEnter += new System.Windows.Input.MouseEventHandler(RemarkRectangle_MouseEnter);
+                rectangle.MouseLeave += new System.Windows.Input.MouseEventHandler(RemarkRectangle_MouseLeave);
+                rectangle.MouseRightButtonUp += new System.Windows.Input.MouseButtonEventHandler(RemarkRectangle_MouseRightUp);
             }
-                
+
 
         }
         private void ImageLeft_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
@@ -226,21 +229,23 @@ namespace labelImage
         {
             System.Windows.Shapes.Rectangle rect = sender as System.Windows.Shapes.Rectangle;
             rect.Fill = new SolidColorBrush(Colors.Red);
+            activeRectangle = sender as Rectangle;
         }
 
         private void RemarkRectangle_MouseLeave(object sender, System.EventArgs e)
         {
             System.Windows.Shapes.Rectangle rect = sender as System.Windows.Shapes.Rectangle;
             rect.Fill = new SolidColorBrush(Colors.Transparent);
+            
         }
 
         private void RemarkRectangle_MouseRightUp(object sender, System.EventArgs e)
         {
             //生成右键菜单
             Console.WriteLine("123");
-            //System.Windows.Controls.ContextMenu cm = this.FindResource("RemarkRectangleRightBtn") as System.Windows.Controls.ContextMenu;
-            //cm.PlacementTarget = sender as System.Windows.Controls.Button;
-            //cm.IsOpen = true;
+            System.Windows.Controls.ContextMenu cm = this.FindResource("RemarkRectangleRightBtn") as System.Windows.Controls.ContextMenu;
+            cm.PlacementTarget = sender as System.Windows.Controls.Button;
+            cm.IsOpen = true;
         }
 
         #endregion
@@ -427,5 +432,14 @@ public bool isRemarking = false;
             }
         }
 
+        private Rectangle activeRectangle;
+        private void RemarkDeleteBtnClick(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine(sender);
+            baseCanvas.Children.Remove(activeRectangle);
+            rectangles.Remove(activeRectangle);
+            activeRectangle = null;
+
+        }
     }
 }
