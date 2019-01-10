@@ -120,7 +120,7 @@ namespace labelImage
 
 
                 Rectangle rectangle = new Rectangle();
-                rectangle.Stroke = GetRemartRectangleColorByTermNumber(TermNumber.Text);
+                rectangle.Stroke = new SolidColorBrush(Colors.Black);
                 rectangle.StrokeThickness = 3;
                 rectangle.Width = 0;
                 rectangle.Height = 0;
@@ -350,10 +350,45 @@ namespace labelImage
 
         private void RBExportXML_Click(object sender, RoutedEventArgs e)
         {
-            XmlTools xmlTool = new XmlTools();
-            xmlTool.rectangleNodes = rectangleNodes;
-            xmlTool.imageName = imageName;
-            xmlTool.SaveXMLFilesAsLabelImageFormat("E:\\MyComputers.xml");
+            Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog();
+            //可能要获取的路径名
+            //string localFilePath = "", fileNameExt = "", newFileName = "", FilePath = "";
+
+            //设置文件类型
+            //书写规则例如：txt files(*.txt)|*.txt
+            saveFileDialog.Filter = "xml files(*.xml)|*.xml|All files(*.*)|*.*";
+            //设置默认文件名（可以不设置）
+            saveFileDialog.FileName = imageName.Split(new char[] { '.'})[0];
+            //主设置默认文件extension（可以不设置）
+            saveFileDialog.DefaultExt = "xml";
+            //获取或设置一个值，该值指示如果用户省略扩展名，文件对话框是否自动在文件名中添加扩展名。（可以不设置）
+            saveFileDialog.AddExtension = true;
+
+            //保存对话框是否记忆上次打开的目录
+            saveFileDialog.RestoreDirectory = true;
+
+            // Show save file dialog box
+            bool? result = saveFileDialog.ShowDialog();
+            //点了保存按钮进入
+            if (result == true)
+            {
+                //获得文件路径
+                string localFilePath = saveFileDialog.FileName.ToString();
+
+                //获取文件名，不带路径
+                string fileNameExt = localFilePath.Substring(localFilePath.LastIndexOf("\\") + 1);
+
+                //获取文件路径，不带文件名
+                string FilePath = localFilePath.Substring(0, localFilePath.LastIndexOf("\\"));
+
+                XmlTools xmlTool = new XmlTools();
+                xmlTool.rectangleNodes = rectangleNodes;
+                xmlTool.imageName = imageName;
+                xmlTool.SaveXMLFilesAsLabelImageFormat(localFilePath);
+            }
+
+
+            
         }
         #endregion
 
