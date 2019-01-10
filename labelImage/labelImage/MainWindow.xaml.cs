@@ -242,7 +242,6 @@ namespace labelImage
         private void RemarkRectangle_MouseRightUp(object sender, System.EventArgs e)
         {
             //生成右键菜单
-            Console.WriteLine("123");
             System.Windows.Controls.ContextMenu cm = this.FindResource("RemarkRectangleRightBtn") as System.Windows.Controls.ContextMenu;
             cm.PlacementTarget = sender as System.Windows.Controls.Button;
             cm.IsOpen = true;
@@ -255,7 +254,7 @@ namespace labelImage
         {
             System.Windows.Point pointToContent = group.Inverse.Transform(point);
             ScaleTransform transform = group.Children[0] as ScaleTransform;
-            if (transform.ScaleX + scale < 1)
+            if (transform.ScaleX + scale < GetMinScale(ImageSourceImage.Source.Width, ImageSourceImage.Source.Width))
             {
                 return;
             }
@@ -441,5 +440,13 @@ public bool isRemarking = false;
             activeRectangle = null;
 
         }
+
+        private double GetMinScale(double imageWidth, double imageHeight)
+        {
+            double horizonalScale = 500 / imageWidth;
+            double verticalScale = 500 / imageHeight;
+            return horizonalScale > verticalScale ? verticalScale : horizonalScale;
+        }
+
     }
 }
