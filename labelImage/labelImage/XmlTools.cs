@@ -77,7 +77,7 @@ namespace labelImage
 
                 XmlElement segmentedElement = myXmlDoc.CreateElement("segmented");
                 segmentedElement.InnerText = "0";
-                rootElement.AppendChild(sizeElement);
+                rootElement.AppendChild(segmentedElement);
 
                 foreach (RemarkRectangleNode node in rectangleNodes)
                 {

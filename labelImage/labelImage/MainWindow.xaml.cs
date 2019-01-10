@@ -22,6 +22,8 @@ namespace labelImage
         public int ymin;
         public int xmax;
         public int ymax;
+        public string name;
+        public int tag;
     };
     /// <summary>
     /// MainWindow.xaml 的交互逻辑
@@ -32,8 +34,8 @@ namespace labelImage
         {
             InitializeComponent();
 
-            translateChanged = new TranslateTransform{X = 0, Y = 0};
-            scaleChanged = new ScaleTransform{ScaleX = 1, ScaleY = 1};
+            translateChanged = new TranslateTransform { X = 0, Y = 0 };
+            scaleChanged = new ScaleTransform { ScaleX = 1, ScaleY = 1 };
 
             rectangleNodes = new List<RemarkRectangleNode>();
             rectangles = new List<Rectangle>();
@@ -45,6 +47,8 @@ namespace labelImage
         private List<RemarkRectangleNode> rectangleNodes;
         private List<Rectangle> rectangles;
         private string imageName;
+        FillContentBox fillContentBox;//标记完后弹出的填写标记信息的对话框
+        private int rectangleTagIndex = 0;//标记框的tag, 用于导出XML时确定哪些rectangle还在屏幕上显示
 
         #region 打开图像
         //Ribbon界面，打开参考图像按钮
@@ -113,7 +117,7 @@ namespace labelImage
 
             if (isRemarking)
             {
-                
+
 
                 Rectangle rectangle = new Rectangle();
                 rectangle.Stroke = GetRemartRectangleColorByTermNumber(TermNumber.Text);
@@ -121,8 +125,10 @@ namespace labelImage
                 rectangle.Width = 0;
                 rectangle.Height = 0;
                 baseCanvas.Children.Add(rectangle);
-                Canvas.SetLeft(rectangle, (PreviousMousePoint.X  - translateChanged.X)/scaleChanged.ScaleX);
-                Canvas.SetTop(rectangle, (PreviousMousePoint.Y  - translateChanged.Y)/scaleChanged.ScaleY);
+                rectangle.Tag = rectangleTagIndex;
+                rectangleTagIndex++;
+                Canvas.SetLeft(rectangle, (PreviousMousePoint.X - translateChanged.X) / scaleChanged.ScaleX);
+                Canvas.SetTop(rectangle, (PreviousMousePoint.Y - translateChanged.Y) / scaleChanged.ScaleY);
                 rectangles.Add(rectangle);
 
                 //记录矩形左上角的坐标
@@ -146,7 +152,7 @@ namespace labelImage
             Point positoin = e.GetPosition(img);
             this.Cursor = System.Windows.Input.Cursors.Arrow;
             img.ReleaseMouseCapture();
-            IsMouseLeftButtonDown = false;         
+            IsMouseLeftButtonDown = false;
 
             if (isRemarking)
             {
@@ -161,8 +167,18 @@ namespace labelImage
                     rectangleNode.xmax = rectangleNode.xmin + (int)rectangle.Width;
                     rectangleNode.ymax = rectangleNode.ymin + (int)rectangle.Height;
                     rectangleNodes.Add(rectangleNode);
-                    
-                }else if (rectangle != null)
+
+                    fillContentBox = new FillContentBox();
+                    fillContentBox.okButton.Click += new RoutedEventHandler(fillContetnBoxOkButtonClick);
+                    fillContentBox.cancelButton.Click += new RoutedEventHandler(fillContetnBoxCancelButtonClick);
+                    ImageCanvas.Children.Add(fillContentBox);
+                    Canvas.SetLeft(fillContentBox, 500);
+                    Canvas.SetTop(fillContentBox, rectangleNode.ymax + 30);
+
+
+
+                }
+                else if (rectangle != null)
                 {
                     rectangles.Remove(rectangle);
                 }
@@ -194,7 +210,7 @@ namespace labelImage
                     DoImageMove(img, e);
                 }
             }
-           
+
         }
         private void ImageLeft_MouseWheel(object sender, MouseWheelEventArgs e)
         {
@@ -222,7 +238,7 @@ namespace labelImage
         {
             System.Windows.Shapes.Rectangle rect = sender as System.Windows.Shapes.Rectangle;
             rect.Fill = new SolidColorBrush(Colors.Transparent);
-            
+
         }
 
         private void RemarkRectangle_MouseRightUp(object sender, System.EventArgs e)
@@ -287,22 +303,22 @@ namespace labelImage
             TranslateTransform translateTrans = transGroup.Children[1] as TranslateTransform;
             translateTrans.X = transform.X;
             translateTrans.Y = transform.Y;
-            
 
-           
+
+
 
 
         }
 
-        
 
 
 
-#endregion
 
-#region Ribbon按钮操作
-//标记图像按钮的显示, 通过布尔值判断当前是标记图像还是移动图像
-public bool isRemarking = false;
+        #endregion
+
+        #region Ribbon按钮操作
+        //标记图像按钮的显示, 通过布尔值判断当前是标记图像还是移动图像
+        public bool isRemarking = false;
         private bool isPutBaseCanvas = false;
         private void RBRemarksImage_Click(object sender, RoutedEventArgs e)
         {
@@ -321,7 +337,7 @@ public bool isRemarking = false;
                     //ImageCanvas.Children.Add(baseCanvas);
                     isPutBaseCanvas = true;
 
-                    
+
                 }
             }
             else
@@ -374,10 +390,22 @@ public bool isRemarking = false;
         private void RemarkDeleteBtnClick(object sender, RoutedEventArgs e)
         {
             Console.WriteLine(sender);
+            DeleteSelectedRectangle();
+        }
+
+        private void DeleteSelectedRectangle()
+        {
             baseCanvas.Children.Remove(activeRectangle);
             rectangles.Remove(activeRectangle);
+            foreach (RemarkRectangleNode rectangleNode in rectangleNodes)
+            {
+                if (rectangleNode.tag == (int)activeRectangle.Tag)
+                {
+                    rectangleNodes.Remove(rectangleNode);
+                    break;
+                }
+            }
             activeRectangle = null;
-
         }
 
         private double GetMinScale(double imageWidth, double imageHeight)
@@ -387,5 +415,27 @@ public bool isRemarking = false;
             return horizonalScale > verticalScale ? verticalScale : horizonalScale;
         }
 
+        private void fillContetnBoxOkButtonClick(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("123");            
+            RemarkRectangleNode rectangleNode = rectangleNodes.Last();
+            rectangleNodes.RemoveAt(rectangleNodes.Count - 1);
+            rectangleNode.name = fillContentBox.name;
+            rectangleNodes.Add(rectangleNode);
+
+            Rectangle rectangle = rectangles.Last();
+            rectangle.Stroke = GetRemartRectangleColorByTermNumber(fillContentBox.termNumber);
+
+            ImageCanvas.Children.Remove(fillContentBox);
+            fillContentBox = null;
+        }
+
+        private void fillContetnBoxCancelButtonClick(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("123");
+            ImageCanvas.Children.Remove(fillContentBox);
+            fillContentBox = null;
+            DeleteSelectedRectangle();
+        }
     }
 }
