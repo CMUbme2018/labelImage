@@ -91,6 +91,7 @@ namespace labelImage
         #region 鼠标操作
         System.Windows.Point PreviousMousePoint;
         bool IsMouseLeftButtonDown;
+        Point RemarkRectanglePoint;
         private void ImageLeft_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             var img = sender as ContentControl;
@@ -118,6 +119,9 @@ namespace labelImage
                 Canvas.SetTop(rectangle, (PreviousMousePoint.Y  - translateChanged.Y)/scaleChanged.ScaleY);
                 rectangles.Add(rectangle);
 
+                RemarkRectanglePoint.X = PreviousMousePoint.X;
+                RemarkRectanglePoint.Y = PreviousMousePoint.Y;
+
                 rectangle.MouseEnter += new System.Windows.Input.MouseEventHandler(RemarkRectangle_MouseEnter);
                 rectangle.MouseLeave += new System.Windows.Input.MouseEventHandler(RemarkRectangle_MouseLeave);
                 rectangle.MouseRightButtonUp += new System.Windows.Input.MouseButtonEventHandler(RemarkRectangle_MouseRightUp);
@@ -136,6 +140,27 @@ namespace labelImage
             this.Cursor = System.Windows.Input.Cursors.Arrow;
             img.ReleaseMouseCapture();
             IsMouseLeftButtonDown = false;         
+
+            if (isRemarking)
+            {
+
+                Rectangle rectangle = rectangles.Last();
+                if (rectangle != null && (rectangle.Width > 0 || rectangle.Height > 0))
+                {
+                    //存储每个标记框的坐标
+                    RemarkRectangleNode rectangleNode = new RemarkRectangleNode();
+                    rectangleNode.xmin = (int)RemarkRectanglePoint.X;
+                    rectangleNode.ymin = (int)RemarkRectanglePoint.Y;
+                    rectangleNode.xmax = rectangleNode.xmin + (int)rectangle.Width;
+                    rectangleNode.ymax = rectangleNode.ymin + (int)rectangle.Height;
+                    rectangleNodes.Add(rectangleNode);
+                    
+                }else if (rectangle != null)
+                {
+                    rectangles.Remove(rectangle);
+                }
+            }
+
 
         }
         private void ImageLeft_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
@@ -303,8 +328,8 @@ public bool isRemarking = false;
         private void RBExportXML_Click(object sender, RoutedEventArgs e)
         {
             XmlTools xmlTool = new XmlTools();
-            //xmlTool.rectangleNodes = rectangleNodes;
-            xmlTool.SaveXMLFilesAsLabelImageFormat("");
+            xmlTool.rectangleNodes = rectangleNodes;
+            xmlTool.SaveXMLFilesAsLabelImageFormat("E:\\MyComputers.xml");
         }
         #endregion
 
