@@ -322,6 +322,10 @@ namespace labelImage
         private bool isPutBaseCanvas = false;
         private void RBRemarksImage_Click(object sender, RoutedEventArgs e)
         {
+            //如果没有打开任何图片, 则不进行任何操作
+            if (ImageSourceImage.Source == null)
+                return;
+
             isRemarking = !isRemarking;
             if (isRemarking)
             {
@@ -350,6 +354,10 @@ namespace labelImage
 
         private void RBExportXML_Click(object sender, RoutedEventArgs e)
         {
+            //如果没有打开任何图片, 则不进行任何操作
+            if (ImageSourceImage.Source == null)
+                return;
+
             Microsoft.Win32.SaveFileDialog saveFileDialog = new Microsoft.Win32.SaveFileDialog();
             //可能要获取的路径名
             //string localFilePath = "", fileNameExt = "", newFileName = "", FilePath = "";
