@@ -124,17 +124,10 @@ namespace labelImage
                 
 
                 Rectangle rectangle = new Rectangle();
-                rectangle.Stroke = new SolidColorBrush(Colors.Black);
+                rectangle.Stroke = GetRemartRectangleColorByTermNumber(TermNumber.Text);
+                rectangle.StrokeThickness = 3;
                 rectangle.Width = 0;
                 rectangle.Height = 0;
-                //rectangle.RenderTransform = new TransformGroup
-                //{
-                //    Children = new TransformCollection()
-                //    {
-                //        new ScaleTransform(1,1),
-                //        new TranslateTransform(0,0),
-                //    }
-                //};
                 baseCanvas.Children.Add(rectangle);
                 Matrix matrix = ImageSourceImage.RenderTransform.Value;
                 Canvas.SetLeft(rectangle, (PreviousMousePoint.X  - translateChanged.X)/scaleChanged.ScaleX);
@@ -406,6 +399,33 @@ public bool isRemarking = false;
         #endregion
 
 
+        public SolidColorBrush GetRemartRectangleColorByTermNumber(string termNumber)
+        {
+            if (termNumber.Length == 0)
+                return new SolidColorBrush(Colors.Black);
+
+            int num = Convert.ToInt32(termNumber);
+            switch (num)
+            {
+                case 1:
+                    return new SolidColorBrush(Colors.Red);
+                case 2:
+                    return new SolidColorBrush(Colors.Orange);
+                case 3:
+                    return new SolidColorBrush(Colors.Yellow);
+                case 4:
+                    return new SolidColorBrush(Colors.Green);
+                case 5:
+                    return new SolidColorBrush(Colors.Blue);
+                case 6:
+                    return new SolidColorBrush(Colors.Indigo);
+                case 7:
+                    return new SolidColorBrush(Colors.Purple);
+                default:
+                    return new SolidColorBrush(Colors.Black);
+
+            }
+        }
 
     }
 }
