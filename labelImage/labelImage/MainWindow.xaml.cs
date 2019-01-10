@@ -32,20 +32,11 @@ namespace labelImage
         {
             InitializeComponent();
 
-            translateChanged = new TranslateTransform
-            {
-                X = 0,
-                Y = 0
-            };
-            scaleChanged = new ScaleTransform
-            {
-                ScaleX = 1,
-                ScaleY = 1
-            };
+            translateChanged = new TranslateTransform{X = 0, Y = 0};
+            scaleChanged = new ScaleTransform{ScaleX = 1, ScaleY = 1};
 
             rectangleNodes = new List<RemarkRectangleNode>();
             rectangles = new List<Rectangle>();
-
         }
 
         Canvas baseCanvas;//标记所需的图层
@@ -55,16 +46,10 @@ namespace labelImage
         private List<Rectangle> rectangles;
 
         #region 打开图像
-        string directory = null;
-        string imgPath = null;
-        List<string> imgArray = null;
-        public string ImageSourceFileName = null;  //参考图像的路径文件名
-        public string ImageTargetFileName = null;   //浮动图像的路径文件名
-
         //Ribbon界面，打开参考图像按钮
         private void RBOpenSourceImage_Click(object sender, RoutedEventArgs e)
         {
-            ImageSourceFileName = OpenImage("打开参考图像");
+            string ImageSourceFileName = OpenImage("打开参考图像");
             if (ImageSourceFileName != "")
             {
                 ImageCanvas.Children.Remove(baseCanvas);
@@ -150,38 +135,7 @@ namespace labelImage
             Point positoin = e.GetPosition(img);
             this.Cursor = System.Windows.Input.Cursors.Arrow;
             img.ReleaseMouseCapture();
-            IsMouseLeftButtonDown = false;
-
-
-            
-            
-
-            //if (rectangle != null)
-            //{
-            //    //如果画出了矩形, 则将其存储在序列中, 先将base canvas 的矩形清除, 并显示序列中存储的所有矩形
-            //    RemarkRectangleNode rectNode = new RemarkRectangleNode();
-            //    rectNode.xmin = (int)PreviousMousePoint.X;
-            //    rectNode.ymin = (int)PreviousMousePoint.Y;
-            //    rectNode.xmax = (int)PreviousMousePoint.X + (int)rectangle.Width;
-            //    rectNode.ymax = (int)PreviousMousePoint.Y + (int)rectangle.Height;
-            //    rectangleNodes.Add(rectNode);
-
-
-            //    rectangles.Add(rectangle);
-
-
-
-
-            //    foreach (Rectangle rect in rectangles)
-            //    {
-
-            //        rect.MouseEnter += new System.Windows.Input.MouseEventHandler(RemarkRectangle_MouseEnter);
-            //        rect.MouseLeave += new System.Windows.Input.MouseEventHandler(RemarkRectangle_MouseLeave);
-            //        rect.MouseRightButtonUp += new System.Windows.Input.MouseButtonEventHandler(RemarkRectangle_MouseRightUp);
-
-            //    }
-
-            //}
+            IsMouseLeftButtonDown = false;         
 
         }
         private void ImageLeft_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
