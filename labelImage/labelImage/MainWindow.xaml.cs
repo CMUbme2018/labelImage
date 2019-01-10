@@ -277,54 +277,6 @@ namespace labelImage
             translateTrans.X = transform1.X;
             translateTrans.Y = transform1.Y;
 
-
-            //foreach (UIElement ue in baseCanvas.Children)
-            //{
-            //    TransformGroup ns = (TransformGroup)ue.RenderTransform;
-            //    if (ns != null)
-            //    {
-            //        Point controlPoint = ns.Inverse.Transform(point);
-            //        ScaleTransform scaleTrans = ns.Children[0] as ScaleTransform;
-            //        scaleTrans.ScaleX = transform.ScaleX;
-            //        scaleTrans.ScaleY = transform.ScaleY;
-            //        TranslateTransform translateTrans = ns.Children[1] as TranslateTransform;
-            //        translateTrans.X = -1 * ((controlPoint.X * scaleTrans.ScaleX) - point.X);
-            //        translateTrans.Y = -1 * ((controlPoint.Y * scaleTrans.ScaleY) - point.Y);
-
-
-                    
-                    
-                    
-            //        //translateTrans.X = transform1.X ;
-            //        //translateTrans.Y = transform1.Y ;
-            //        Console.WriteLine("transform1---x---{0}", transform1.X);
-            //        Console.WriteLine("transform1---y---{0}", transform1.Y);
-
-
-
-
-            //        //foreach (Transform trans in ns.Children)
-            //        //{
-            //        //    if (trans is ScaleTransform && scaleChanging != null)
-            //        //    {
-            //        //        ScaleTransform scale = (ScaleTransform)trans;
-            //        //        scale.ScaleX += scaleChanged.ScaleX;
-            //        //        scale.ScaleY += scaleChanged.ScaleY;
-
-
-            //        //        TranslateTransform scaleTrans = ns.Children[0] as TranslateTransform;
-
-            //        //        scaleTrans.X = scaleTrans.X + scaleTransformChanging.X - preScaleTransformChanging.X;
-            //        //        scaleTrans.Y = scaleTrans.Y + scaleTransformChanging.Y - preScaleTransformChanging.Y;
-
-            //        //        preScaleTransformChanging = scaleTransformChanging;
-
-            //        //    }
-            //        //}
-
-            //    }
-            //}
-
         }
         private void DoImageMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
