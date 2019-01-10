@@ -10,6 +10,7 @@ namespace labelImage
     class XmlTools
     {
         public List<RemarkRectangleNode> rectangleNodes;
+        public string imageName;
 
         public void SaveXMLFilesAsLabelImageFormat(string path)
         {
@@ -50,7 +51,7 @@ namespace labelImage
                 folderElement.InnerText = "Image";
                 rootElement.AppendChild(folderElement);
                 XmlElement filenameElement = myXmlDoc.CreateElement("filename");
-                filenameElement.InnerText = "3n011.jpg";
+                filenameElement.InnerText = imageName;
                 rootElement.AppendChild(filenameElement);
                 XmlElement pathElement = myXmlDoc.CreateElement("path");
                 pathElement.InnerText = xmlFilePath;

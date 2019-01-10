@@ -44,18 +44,24 @@ namespace labelImage
         ScaleTransform scaleChanged;
         private List<RemarkRectangleNode> rectangleNodes;
         private List<Rectangle> rectangles;
+        private string imageName;
 
         #region 打开图像
         //Ribbon界面，打开参考图像按钮
         private void RBOpenSourceImage_Click(object sender, RoutedEventArgs e)
         {
             string ImageSourceFileName = OpenImage("打开参考图像");
+
+            //"E:\\wanglei\\code\\xml备用代码\\0.jpg"
             if (ImageSourceFileName != "")
             {
                 ImageCanvas.Children.Remove(baseCanvas);
                 baseCanvas = null;
 
                 ImageSourceImage.Source = new BitmapImage(new Uri(ImageSourceFileName));
+
+                string[] tempStrings = ImageSourceFileName.Split(new char[] { '\\' });
+                imageName = tempStrings.Last();
 
                 baseCanvas = new Canvas();
                 baseCanvas.Height = ImageSourceImage.Source.Height;
@@ -119,8 +125,9 @@ namespace labelImage
                 Canvas.SetTop(rectangle, (PreviousMousePoint.Y  - translateChanged.Y)/scaleChanged.ScaleY);
                 rectangles.Add(rectangle);
 
-                RemarkRectanglePoint.X = PreviousMousePoint.X;
-                RemarkRectanglePoint.Y = PreviousMousePoint.Y;
+                //记录矩形左上角的坐标
+                RemarkRectanglePoint.X = (PreviousMousePoint.X - translateChanged.X) / scaleChanged.ScaleX;
+                RemarkRectanglePoint.Y = (PreviousMousePoint.Y - translateChanged.Y) / scaleChanged.ScaleY;
 
                 rectangle.MouseEnter += new System.Windows.Input.MouseEventHandler(RemarkRectangle_MouseEnter);
                 rectangle.MouseLeave += new System.Windows.Input.MouseEventHandler(RemarkRectangle_MouseLeave);
@@ -329,6 +336,7 @@ public bool isRemarking = false;
         {
             XmlTools xmlTool = new XmlTools();
             xmlTool.rectangleNodes = rectangleNodes;
+            xmlTool.imageName = imageName;
             xmlTool.SaveXMLFilesAsLabelImageFormat("E:\\MyComputers.xml");
         }
         #endregion
